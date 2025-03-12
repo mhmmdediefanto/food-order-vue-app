@@ -1,9 +1,10 @@
 <script setup>
 const props = defineProps(["itemsProducts"]);
+
+const urlImage = "http://127.0.0.1:8000/storage/";
 </script>
 <template>
   <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-   
     <table
       class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400"
     >
@@ -37,7 +38,9 @@ const props = defineProps(["itemsProducts"]);
               >{{ item.category }}</span
             >
           </td>
-          <td class="px-6 py-4"><img src="" alt="" /></td>
+          <td class="px-6 py-4">
+            <img :src="urlImage + item.image" alt="" />
+          </td>
           <td class="px-6 py-4">
             <RouterLink
               :to="{ name: 'update-product', params: { id: item.id } }"
