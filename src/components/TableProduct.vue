@@ -39,7 +39,7 @@ const urlImage = "http://127.0.0.1:8000/storage/";
             >
           </td>
           <td class="px-6 py-4">
-            <img :src="urlImage + item.image" alt="" />
+            <img :src="urlImage + item.image" alt="" width="30"/>
           </td>
           <td class="px-6 py-4">
             <RouterLink

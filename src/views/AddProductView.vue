@@ -7,6 +7,10 @@ import { computed, onMounted, ref } from "vue";
 import router from "@/router";
 import axios from "axios";
 import Loading from "@/components/Loading.vue";
+import { ProdukValidation } from "@/validation/ProdukValidation";
+import { useField, useForm } from "vee-validate";
+
+// Data User
 const users = ref({
   name: "",
   email: "",
@@ -15,52 +19,54 @@ const users = ref({
 
 const loading = ref(false);
 
+// Kategori Produk
 const categories = [
   { value: "Makanan", label: "Makanan" },
   { value: "Minuman", label: "Minuman" },
   { value: "Snack", label: "Snack" },
 ];
 
-const product = ref({
-  name: "",
-  price: "",
-  typeCategory: "",
-  deskription: "",
-  image: "",
+// Form Validation
+const { handleSubmit, resetForm } = useForm({
+  validationSchema: ProdukValidation,
 });
 
+// Menggunakan useField() dengan benar
+const { value: name, errorMessage: nameError } = useField("name");
+const { value: price, errorMessage: priceError } = useField("price");
+const { value: typeCategory, errorMessage: typeCategoryError } =
+  useField("typeCategory");
+const { value: deskription, errorMessage: deskriptionError } =
+  useField("deskription");
+const { value: gambarProduct, errorMessage: gambarProductError } =
+  useField("gambarProduct");
+
+// Mengecek Login dan Role
 onMounted(() => {
   users.value.role_id = localStorage.getItem("role_id");
-
-  // Jika role_id bukan 3 dan bukan 4, redirect ke home
-  if (users.value.role_id !== "3") {
-    return router.push({ name: "home" });
-  }
+  if (users.value.role_id !== "3") return router.push({ name: "home" });
 
   const token = localStorage.getItem("token");
-  if (!token) {
-    return router.push({ name: "login" });
-  }
+  if (!token) return router.push({ name: "login" });
 
   users.value.name = localStorage.getItem("name");
   users.value.email = localStorage.getItem("email");
 });
 
-const isLogined = computed(() => {
-  const token = localStorage.getItem("token");
+// Mengecek apakah user login
+const isLogined = computed(() => !!localStorage.getItem("token"));
 
-  return token ? true : false;
-});
+// Fungsi Menambah Produk
+const handleAddProduct = handleSubmit(async (values) => {
+  console.log("values:", values);
 
-const handleAddProduct = async () => {
   const formData = new FormData();
-  formData.append("name", product.value.name);
-  formData.append("price", product.value.price);
-  formData.append("category", product.value.typeCategory);
-  formData.append("description", product.value.deskription);
-  formData.append("image", product.value.image); // Pastikan ini adalah file (bukan string)
+  formData.append("name", values.name);
+  formData.append("price", values.price);
+  formData.append("category", values.typeCategory);
+  formData.append("description", values.deskription);
+  formData.append("image", gambarProduct.value); // Pastikan ini file, bukan string
 
- 
   try {
     loading.value = true;
     const response = await axios.post(
@@ -74,31 +80,29 @@ const handleAddProduct = async () => {
       }
     );
 
-    if (response.status === 200) {
+    if (response.status >= 200 && response.status < 300) {
       alert("Product berhasil ditambahkan");
+      resetForm(); // Reset form setelah submit sukses
       router.push({ name: "product" });
-      return;
     }
   } catch (error) {
-    console.log(error);
+    console.error(
+      "Gagal menambahkan produk:",
+      error.response?.data || error.message
+    );
   } finally {
     loading.value = false;
-    product.value.name = "";
-    product.value.price = "";
-    product.value.typeCategory = "";
-    product.value.deskription = "";
-
-    return;
   }
-};
+});
 
+// Fungsi untuk menangani upload gambar
 const handleImageChanged = (event) => {
   const file = event.target.files[0];
   if (!file) return;
-  product.value.image = file;
-  return;
+  gambarProduct.value = file; // Simpan file di gambarProduct
 };
 </script>
+
 <template>
   <div>
     <Navbar
@@ -109,41 +113,48 @@ const handleImageChanged = (event) => {
     />
   </div>
   <div>
-    <h2 class="font-bold text-2xl my-2 text-center">Halaman tambah product</h2>
+    <h2 class="font-bold text-2xl my-2 text-center">Halaman Tambah Produk</h2>
     <div class="flex w-full justify-center px-5">
       <form @submit.prevent="handleAddProduct" class="w-full lg:w-2/3 md:w-2/4">
         <div class="w-full p-4 rounded-lg">
           <div class="mb-3">
-            <BaseLabel forHtml="name" label="Nama Product" />
-            <BaseInput id="name" v-model="product.name" type="text" />
+            <BaseLabel forHtml="name" label="Nama Produk" />
+            <BaseInput id="name" v-model="name" type="text" />
+            <span class="text-red-500" v-if="nameError">{{ nameError }}</span>
           </div>
           <div class="mb-3">
-            <BaseLabel forHtml="price" label="Price" />
-            <BaseInput id="price" v-model="product.price" type="number" />
+            <BaseLabel forHtml="price" label="Harga" />
+            <BaseInput id="price" v-model="price" type="number" />
+            <span class="text-red-500" v-if="priceError">{{ priceError }}</span>
           </div>
           <div class="mb-3">
-            <BaseLabel forHtml="typeCategory" label=" Category" />
+            <BaseLabel forHtml="typeCategory" label="Kategori" />
             <BaseInputSelect
               id="typeCategory"
-              v-model="product.typeCategory"
+              v-model="typeCategory"
               :options="categories"
             />
+            <span class="text-red-500" v-if="typeCategoryError">{{
+              typeCategoryError
+            }}</span>
           </div>
           <div class="mb-3">
-            <BaseLabel forHtml="deskription" label="Deskription" />
-            <BaseInput
-              id="deskription"
-              v-model="product.deskription"
-              type="text"
-            />
+            <BaseLabel forHtml="deskription" label="Deskripsi" />
+            <BaseInput id="deskription" v-model="deskription" type="text" />
+            <span class="text-red-500" v-if="deskriptionError">{{
+              deskriptionError
+            }}</span>
           </div>
           <div class="mb-3">
             <BaseLabel forHtml="gambarProduct" label="Gambar" />
             <BaseInput
               id="gambarProduct"
               type="file"
-              @change="handleImageChanged($event)"
+              @change="handleImageChanged"
             />
+            <span class="text-red-500" v-if="gambarProductError">{{
+              gambarProductError
+            }}</span>
           </div>
         </div>
         <div class="mb-3">
@@ -153,7 +164,7 @@ const handleImageChanged = (event) => {
           >
             <div class="flex justify-center items-center">
               <Loading v-if="loading" />
-              <span v-else> Tambah Product</span>
+              <span v-else>Tambah Produk</span>
             </div>
           </button>
         </div>
@@ -161,5 +172,3 @@ const handleImageChanged = (event) => {
     </div>
   </div>
 </template>
-
-<style lang="scss" scoped></style>
