@@ -17,6 +17,8 @@ const users = ref({
 
 // loading
 const loading = ref(false);
+const loadingUpdate = ref(false);
+const imageFile = ref(null);
 // Kategori Produk
 const categories = [
   { value: "Makanan", label: "Makanan" },
@@ -68,7 +70,7 @@ const produks = async () => {
       }
     );
 
-    console.log(response.data.data);
+    // console.log(response.data.data);
 
     if (response.data.status === 404) {
       alert("Produk tidak ditemukan");
@@ -90,7 +92,47 @@ const produks = async () => {
   }
 };
 
-console.log(produk.value);
+const handleUpdateProduct = async () => {
+  try {
+    loadingUpdate.value = true;
+
+    let fromData = new FormData();
+    fromData.append("name", produk.value.name);
+    fromData.append("category", produk.value.category);
+    fromData.append("price", produk.value.price);
+    fromData.append("description", produk.value.description);
+    fromData.append("image", imageFile.value);
+    /* jika pakek FormData misal mau update data maka jika method dari si backendnya pakek patch maka diperlukan perubahan method di Formdatanya 
+    seperti contoh dibawah ini */
+    fromData.append("_method", "patch");
+
+    const response = await axios.post(
+      `http://127.0.0.1:8000/api/items/${produkId.value}`,
+      fromData,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Accept: "application/json",
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    console.log(response);
+  } catch (error) {
+    console.error("Error fetching product:", error);
+    alert("Terjadi kesalahan saat mengambil data produk.");
+  } finally {
+    loadingUpdate.value = false;
+  }
+};
+// handle image changed
+const handleImageChanged = (e) => {
+  // console.log(e.target.file[0]);
+  if (!e.target.files[0]) return console.log("tidak ada gambar");
+
+  imageFile.value = e.target.files[0];
+};
 </script>
 <template>
   <div
@@ -111,7 +153,7 @@ console.log(produk.value);
   <h2 class="font-bold text-2xl my-2 text-center">Halaman update Produk</h2>
   <div class="flex w-full justify-center px-5">
     <form
-      @submit.prevent="handleAddProduct"
+      @submit.prevent="handleUpdateProduct"
       class="w-full lg:w-2/3 md:w-2/4"
       v-show="!loading"
     >
@@ -139,14 +181,14 @@ console.log(produk.value);
         <img
           :src="`http://localhost:8000/storage/${produk.image}`"
           alt=""
-          class="w-full"
+          class="w-32"
           v-show="produk.image"
         />
         <BaseLabel htmlFor="gambarProduct" label="Gambar" />
         <BaseInput
           id="gambarProduct"
           type="file"
-          @change="handleImageChanged"
+          @change="handleImageChanged($event)"
         />
       </div>
       <div>
@@ -155,7 +197,7 @@ console.log(produk.value);
           type="submit"
         >
           <div class="flex justify-center items-center">
-            <Loading v-if="loading" />
+            <Loading v-if="loadingUpdate" />
             <span v-else>Update Produk</span>
           </div>
         </button>
