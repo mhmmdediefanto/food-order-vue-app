@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 
 const props =defineProps([ "loading", "items" ,"search" ]);
-
+ 
 const filteredItems = computed(() => {
   return props.items.filter((item) =>
     item.name.toLowerCase().includes(props.search.toLowerCase())

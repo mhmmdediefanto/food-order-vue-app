@@ -8,6 +8,8 @@ import { computed, onMounted, ref, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 import router from "@/router";
 import axios from "axios";
+import { useField, useForm } from "vee-validate";
+import { ProdukValidation } from "@/validation/ProdukValidation";
 
 const users = ref({
   name: "",
@@ -25,15 +27,21 @@ const categories = [
   { value: "Minuman", label: "Minuman" },
   { value: "Snack", label: "Snack" },
 ];
+const { handleSubmit } = useForm({
+  validationSchema: ProdukValidation,
+
+});
+
+// console.log(handleSubmit.arguments);
+const { value: name, errorMessage: nameError } = useField("name");
+const { value: typeCategory, errorMessage: categoryError } =
+  useField("typeCategory");
+const { value: price, errorMessage: priceError } = useField("price");
+const { value: deskription, errorMessage: descriptionError } =
+  useField("deskription");
+const { value: gambarProduct, errorMessage: imageError } = useField("gambarProduct");
 
 const produkId = ref("");
-const produk = ref({
-  name: "",
-  category: "",
-  price: "",
-  description: "",
-  image: "",
-});
 
 const route = useRoute();
 
@@ -77,13 +85,13 @@ const produks = async () => {
       return router.push({ name: "product" });
     }
 
-    Object.assign(produk.value, response.data.data);
+    // console.log(response);
 
-    // produk.value.name = response.data.data.name;
-    // produk.value.category = response.data.data.category;
-    // produk.value.price = response.data.data.price;
-    // produk.value.description = response.data.data.description;
-    // produk.value.image = response.data.data.image;
+    name.value = response.data.data.name;
+    typeCategory.value = response.data.data.category;
+    price.value = response.data.data.price;
+    deskription.value = response.data.data.description;
+    gambarProduct.value = response.data.data.image;
   } catch (error) {
     console.error("Error fetching product:", error);
     alert("Terjadi kesalahan saat mengambil data produk.");
@@ -93,18 +101,30 @@ const produks = async () => {
 };
 
 const handleUpdateProduct = async () => {
+  console.log("okeokeok")
+
   try {
     loadingUpdate.value = true;
 
+    // console.log(values);
+
     let fromData = new FormData();
-    fromData.append("name", produk.value.name);
-    fromData.append("category", produk.value.category);
-    fromData.append("price", produk.value.price);
-    fromData.append("description", produk.value.description);
-    fromData.append("image", imageFile.value);
-    /* jika pakek FormData misal mau update data maka jika method dari si backendnya pakek patch maka diperlukan perubahan method di Formdatanya 
+    fromData.append("name", name.value);
+    fromData.append("category", typeCategory.value);
+    fromData.append("price", price.value);
+    fromData.append("description", deskription.value);
+
+    if (gambarProduct.value) {
+      fromData.append("image", gambarProduct.value);
+    }
+    /* jika pakek FormData misal mau update data maka jika method dari si backendnya pakek patch maka diperlukan perubahan method di Formdatanya
     seperti contoh dibawah ini */
     fromData.append("_method", "patch");
+
+    // Debugging: Cek isi FormData sebelum dikirim
+    // for (let pair of fromData.entries()) {
+    //   console.log(pair[0], pair[1]);
+    // }
 
     const response = await axios.post(
       `http://127.0.0.1:8000/api/items/${produkId.value}`,
@@ -120,7 +140,7 @@ const handleUpdateProduct = async () => {
 
     console.log(response);
   } catch (error) {
-    console.error("Error fetching product:", error);
+    console.error("Error getting product:", error);
     alert("Terjadi kesalahan saat mengambil data produk.");
   } finally {
     loadingUpdate.value = false;
@@ -128,11 +148,16 @@ const handleUpdateProduct = async () => {
 };
 // handle image changed
 const handleImageChanged = (e) => {
-  // console.log(e.target.file[0]);
+  // console.log(e);
   if (!e.target.files[0]) return console.log("tidak ada gambar");
+
+  gambarProduct.value = e.target.files[0];
 
   imageFile.value = e.target.files[0];
 };
+
+console.log(loadingUpdate.value);
+console.log(loading.value);
 </script>
 <template>
   <div
@@ -159,34 +184,45 @@ const handleImageChanged = (e) => {
     >
       <div class="mb-3">
         <BaseLabel htmlFor="name" label="Nama Produk" />
-        <BaseInput type="text" id="name" v-model="produk.name" />
+        <BaseInput type="text" id="name" v-model="name" />
+        <p v-if="nameError" class="text-red-500 text-sm italic">
+          {{ nameError }}
+        </p>
       </div>
       <div class="mb-3">
         <BaseLabel htmlFor="price" label="Harga" />
-        <BaseInput type="number" id="price" v-model="produk.price" />
+        <BaseInput type="number" id="price" v-model="price" />
+        <p v-if="priceError" class="text-red-500 text-sm italic">
+          {{ priceError }}
+        </p>
       </div>
       <div class="mb-3">
         <BaseLabel htmlFor="typeCategory" label="Kategori" />
         <BaseInputSelect
           id="typeCategory"
-          v-model="produk.category"
+          v-model="typeCategory"
           :options="categories"
         />
+        <p v-if="categoryError" class="text-red-500 text-sm italic">
+          {{ categoryError }}
+        </p>
       </div>
       <div class="mb-3">
-        <BaseLabel htmlFor="deskription" label="Deskripsi" />
-        <BaseInput type="text" id="deskription" v-model="produk.description" />
+        <BaseLabel htmlFor="descriptionProduk" label="Deskripsi" />
+        <BaseInput type="text" id="descriptionProduk" v-model="deskription" />
+        <p class="text-red-500 text-sm italic" v-if="descriptionError">
+          {{ descriptionError }}
+        </p>
       </div>
       <div class="mb-3 overflow-hidden">
         <img
-          :src="`http://localhost:8000/storage/${produk.image}`"
+          :src="`http://localhost:8000/storage/${gambarProduct}`"
           alt=""
           class="w-32"
-          v-show="produk.image"
         />
-        <BaseLabel htmlFor="gambarProduct" label="Gambar" />
+        <BaseLabel htmlFor="image" label="Gambar" />
         <BaseInput
-          id="gambarProduct"
+          id="image"
           type="file"
           @change="handleImageChanged($event)"
         />
