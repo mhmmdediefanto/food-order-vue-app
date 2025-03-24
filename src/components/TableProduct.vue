@@ -1,5 +1,8 @@
 <script setup>
-const props = defineProps(["itemsProducts"]);
+import Loading from "./Loading.vue";
+const props = defineProps(["itemsProducts", "loading"]);
+
+const emit = defineEmits(["deleteItem"]);
 
 const urlImage = "http://127.0.0.1:8000/storage/";
 </script>
@@ -39,7 +42,7 @@ const urlImage = "http://127.0.0.1:8000/storage/";
             >
           </td>
           <td class="px-6 py-4">
-            <img :src="urlImage + item.image" alt="" width="30"/>
+            <img :src="urlImage + item.image" alt="" width="30" />
           </td>
           <td class="px-6 py-4">
             <RouterLink
@@ -47,6 +50,14 @@ const urlImage = "http://127.0.0.1:8000/storage/";
               class="font-medium text-blue-600 dark:text-blue-500 hover:underline"
               >Edit</RouterLink
             >
+            |
+            <button
+              @click.prevent="$emit('deleteItem', item.id)"
+              class="font-medium text-blue-600 dark:text-blue-500 hover:underline flex items-center gap-2"
+            >
+              <Loading v-if="loading  === item.id" />
+              <span v-else>Delete</span>
+            </button>
           </td>
         </tr>
       </tbody>

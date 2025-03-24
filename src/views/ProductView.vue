@@ -12,6 +12,8 @@ const users = ref({
   role_id: "",
 });
 
+const loading = ref(null);
+
 onMounted(() => {
   users.value.role_id = localStorage.getItem("role_id");
 
@@ -49,6 +51,30 @@ const getData = async () => {
     console.log(error);
   }
 };
+
+const handleDelete = async (id) => {
+  try {
+    loading.value = id;
+    const response = await axios.delete(
+      `http://127.0.0.1:8000/api/items/delete/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (response.status >= 200 && response.status < 300) {
+      alert("Product berhasil dihapus");
+      getData();
+    }
+  } catch (error) {
+    console.log(error);
+  } finally {
+    loading.value = null;
+  }
+};
 </script>
 <template>
   <div>
@@ -71,7 +97,11 @@ const getData = async () => {
         >
       </div>
       <div>
-        <TableProduct :itemsProducts="itemsProcuts" />
+        <TableProduct
+          :itemsProducts="itemsProcuts"
+          @deleteItem="handleDelete"
+          :loading="loading"
+        />
       </div>
     </div>
   </div>
