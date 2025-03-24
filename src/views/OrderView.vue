@@ -5,12 +5,16 @@ import axios from "axios";
 import { computed, onMounted, ref } from "vue";
 import router from "@/router";
 import CardItems from "@/components/CardItems.vue";
+import CartOrder from "@/components/CartOrder.vue";
 
 const users = ref({
   name: "",
   email: "",
   role_id: "",
 });
+
+const orders = ref([]);
+
 const search = ref("");
 
 const items = ref([]);
@@ -60,6 +64,27 @@ const isLogined = computed(() => {
 
   return token ? true : false;
 });
+
+import { toRaw } from "vue";
+
+const handleOrder = (id) => {
+  const item = items.value.find((item) => item.id === id);
+
+  if (!item) return; // Jika item tidak ditemukan, hentikan eksekusi
+
+  // Cari apakah item sudah ada di orders.value
+  const existingItem = orders.value.find((order) => order.id === item.id);
+
+  if (existingItem) {
+    // Jika sudah ada kasih pesan alert
+    alert("Item sudah ada di keranjang");
+  } else {
+    // Jika belum ada, tambahkan item baru dengan quantity = 1
+    orders.value.push({ ...toRaw(item), quantity: 1 });
+  }
+
+  // console.log("Updated Orders:", orders.value);
+};
 </script>
 
 <template>
@@ -88,16 +113,23 @@ const isLogined = computed(() => {
         />
       </div>
     </div>
-    <h1 class="text-2xl font-bold">Order</h1>
+    <h1 class="text-2xl font-bold pt-3">Order</h1>
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-4">
       <div class="grid grid-cols-1 lg:col-span-3">
         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
-         <!-- item product -->
-          <CardItems :items="items" :loading="loading" :search="search"/>
+          <!-- item product -->
+          <CardItems
+            :items="items"
+            :loading="loading"
+            :search="search"
+            @order="handleOrder"
+          />
         </div>
       </div>
-      <div class="border w-full border-slate-800">
-        <h2>order</h2>
+      <div class="w-full px-2 flex flex-col gap-2">
+        <h2 class="text-center text-2xl font-bold">Cart Order List</h2>
+
+        <CartOrder :orders="orders" />
       </div>
     </div>
   </div>
