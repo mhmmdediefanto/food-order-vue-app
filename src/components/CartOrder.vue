@@ -2,6 +2,7 @@
 import { computed, ref } from "vue";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import { FormatRupiah } from "@/utils/FormatRupiah";
 
 const props = defineProps({
   orders: Array,
@@ -51,7 +52,7 @@ const deleteProduct = (id) => {
     >
       <div class="flex justify-between w-full items-center">
         <h4 class="text-sm">{{ item.name }}</h4>
-        <p class="text-sm">Rp. {{ item.price }}</p>
+        <p class="text-sm">{{ FormatRupiah(item.price) }}</p>
       </div>
       <div class="flex justify-between items-center">
         <div class="flex gap-3 items-center">
@@ -82,7 +83,7 @@ const deleteProduct = (id) => {
     <hr class="text-slate-300" />
     <div class="flex justify-between items-center mt-3">
       <h2 class="font-bold text-2xl">Sub Total</h2>
-      <p>RP. {{ total }}</p>
+      <p>{{ FormatRupiah(total) }}</p>
     </div>
   </div>
 </template>

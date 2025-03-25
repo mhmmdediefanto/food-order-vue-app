@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from "vue";
+import { FormatRupiah } from "@/utils/FormatRupiah";
 
 const props = defineProps(["loading", "items", "search"]);
 
@@ -30,7 +31,7 @@ const filteredItems = computed(() => {
           </h5>
         </a>
         <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">
-          {{ item.price }}
+          {{ FormatRupiah(item.price) }}
         </p>
       </div>
       <div>
