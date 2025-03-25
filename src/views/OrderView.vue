@@ -83,7 +83,7 @@ const handleOrder = (id) => {
     orders.value.push({ ...toRaw(item), quantity: 1 });
   }
 
-  // console.log("Updated Orders:", orders.value);
+  console.log("Updated Orders:", orders.value);
 };
 </script>
 
