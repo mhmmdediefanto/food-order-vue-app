@@ -10,8 +10,9 @@ const props = defineProps({
 
 const total = computed(() => {
   return props.orders.reduce((total, item) => {
-    console.log("📌 Harga item:", item.price); // Debugging
-    return total + item.price * (item.quantity || 1);
+    const jmlhQty = item.quantity || 1;
+    const totalHarga = item.price * jmlhQty;
+    return total + totalHarga;
   }, 0); // 0 adalah nilai awal
 });
 
@@ -33,7 +34,7 @@ const decrementQuantity = (id) => {
 };
 
 const deleteProduct = (id) => {
-  console.log(id);
+  // console.log(id);
   if (id) {
     const item = props.orders.find((item) => item.id === id);
     if (item) {
@@ -52,8 +53,9 @@ const deleteProduct = (id) => {
     >
       <div class="flex justify-between w-full items-center">
         <h4 class="text-sm">{{ item.name }}</h4>
-        <p class="text-sm">{{ FormatRupiah(item.price) }}</p>
+        <p class="text-sm">{{ FormatRupiah(item.price * item.quantity) }}</p>
       </div>
+      <p class="text-[10px]">@{{ FormatRupiah(item.price) }}</p>
       <div class="flex justify-between items-center">
         <div class="flex gap-3 items-center">
           <button
@@ -74,7 +76,10 @@ const deleteProduct = (id) => {
         </div>
         <div>
           <button @click="deleteProduct(item.id)">
-            <font-awesome-icon :icon="faTrash" class="text-red-500" />
+            <font-awesome-icon
+              :icon="faTrash"
+              class="text-red-500 cursor-pointer"
+            />
           </button>
         </div>
       </div>

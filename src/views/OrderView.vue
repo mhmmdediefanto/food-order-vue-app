@@ -2,7 +2,7 @@
 import Navbar from "@/components/Navbar.vue";
 import Loading from "@/components/Loading.vue";
 import axios from "axios";
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import router from "@/router";
 import CardItems from "@/components/CardItems.vue";
 import CartOrder from "@/components/CartOrder.vue";
@@ -32,7 +32,7 @@ onMounted(() => {
   if (!token) {
     return router.push({ name: "login" });
   }
-  console.log("onmounted");
+  // console.log("onmounted");
 
   users.value.name = localStorage.getItem("name");
   users.value.email = localStorage.getItem("email");
@@ -51,6 +51,9 @@ const getData = async () => {
       },
     });
 
+    // console.log(response);
+    
+
     items.value = response.data.data.items.data;
   } catch (error) {
     console.log(error);
@@ -67,24 +70,26 @@ const isLogined = computed(() => {
 
 import { toRaw } from "vue";
 
+// Buat Map untuk mempercepat pencarian
+const ordersMap = computed(
+  () => new Map(orders.value.map((order) => [order.id, order]))
+);
+
 const handleOrder = (id) => {
   const item = items.value.find((item) => item.id === id);
+  if (!item) return;
 
-  if (!item) return; // Jika item tidak ditemukan, hentikan eksekusi
-
-  // Cari apakah item sudah ada di orders.value
-  const existingItem = orders.value.find((order) => order.id === item.id);
-
-  if (existingItem) {
-    // Jika sudah ada kasih pesan alert
+  // Gunakan Map untuk pencarian cepat
+  if (ordersMap.value.has(item.id)) {
     alert("Item sudah ada di keranjang");
   } else {
-    // Jika belum ada, tambahkan item baru dengan quantity = 1
     orders.value.push({ ...toRaw(item), quantity: 1 });
   }
 
-  console.log("Updated Orders:", orders.value);
+  console.log(orders.value);
+
 };
+
 </script>
 
 <template>
@@ -114,9 +119,27 @@ const handleOrder = (id) => {
       </div>
     </div>
     <h1 class="text-2xl font-bold pt-3">Order</h1>
-    <div class="grid grid-cols-1 gap-4 lg:grid-cols-4">
-      <div class="grid grid-cols-1 lg:col-span-3">
-        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
+    <div
+      :class="
+        orders.length === 0
+          ? 'lg:grid-cols-7 grid'
+          : 'grid grid-cols-1 gap-4 lg:grid-cols-4'
+      "
+    >
+      <div
+        :class="
+          orders.length === 0
+            ? 'grid grid-cols-1 lg:col-span-7'
+            : 'grid grid-cols-1 lg:col-span-3'
+        "
+      >
+        <div
+          :class="
+            orders.length === 0
+              ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3'
+              : 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3'
+          "
+        >
           <!-- item product -->
           <CardItems
             :items="items"
@@ -126,7 +149,7 @@ const handleOrder = (id) => {
           />
         </div>
       </div>
-      <div class="w-full px-2 flex flex-col gap-2">
+      <div class="w-full px-2 flex flex-col gap-2" v-if="orders.length > 0">
         <h2 class="text-center text-2xl font-bold">Cart Order List</h2>
 
         <CartOrder :orders="orders" />
