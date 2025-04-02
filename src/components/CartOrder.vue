@@ -3,10 +3,21 @@ import { computed, ref } from "vue";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FormatRupiah } from "@/utils/FormatRupiah";
+import BaseInput from "./form/BaseInput.vue";
+import BaseLabel from "./form/BaseLabel.vue";
 
 const props = defineProps({
   orders: Array,
 });
+const dataOrders = ref({
+  name_customer: "",
+  no_meja: "",
+  orders: props.orders,
+});
+
+const paymentOrders = () => {
+  return console.log(dataOrders.value);
+};
 
 const total = computed(() => {
   return props.orders.reduce((total, item) => {
@@ -44,6 +55,17 @@ const deleteProduct = (id) => {
 };
 </script>
 <template>
+  <div class="w-full flex flex-col gap-2">
+    <div>
+      <base-label forHtml="customer_name" label="Customer" />
+      <base-input id="customer_name" type="text" v-model="dataOrders.name_customer"/>
+    </div>
+    <div>
+      <base-label forHtml="no_meja" label="No Meja" />
+      <base-input id="no_meja" type="text" v-model="dataOrders.no_meja" />
+    </div>
+  </div>
+
   <!-- cart order -->
   <div class="w-full flex flex-col justify-between gap-2">
     <div
@@ -89,6 +111,15 @@ const deleteProduct = (id) => {
     <div class="flex justify-between items-center mt-3">
       <h2 class="font-bold text-2xl">Sub Total</h2>
       <p>{{ FormatRupiah(total) }}</p>
+    </div>
+
+    <div class="w-full mt-3">
+      <button
+        class="py-2 px-4 bg-blue-500 text-white rounded-lg w-full text-base"
+        @click="paymentOrders"
+      >
+        Submit
+      </button>
     </div>
   </div>
 </template>

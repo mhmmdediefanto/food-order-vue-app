@@ -52,7 +52,6 @@ const getData = async () => {
     });
 
     // console.log(response);
-    
 
     items.value = response.data.data.items.data;
   } catch (error) {
@@ -87,9 +86,7 @@ const handleOrder = (id) => {
   }
 
   console.log(orders.value);
-
 };
-
 </script>
 
 <template>
@@ -152,7 +149,7 @@ const handleOrder = (id) => {
       <div class="w-full px-2 flex flex-col gap-2" v-if="orders.length > 0">
         <h2 class="text-center text-2xl font-bold">Cart Order List</h2>
 
-        <CartOrder :orders="orders" />
+        <CartOrder :orders="orders" /> 
       </div>
     </div>
   </div>
