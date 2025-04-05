@@ -85,7 +85,7 @@ const handleOrder = (id) => {
     orders.value.push({ ...toRaw(item), quantity: 1 });
   }
 
-  console.log(orders.value);
+  // console.log(orders.value);
 };
 </script>
 
@@ -149,7 +149,7 @@ const handleOrder = (id) => {
       <div class="w-full px-2 flex flex-col gap-2" v-if="orders.length > 0">
         <h2 class="text-center text-2xl font-bold">Cart Order List</h2>
 
-        <CartOrder :orders="orders" /> 
+        <CartOrder :orders="orders" @resetOrders="orders = []" />
       </div>
     </div>
   </div>

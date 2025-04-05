@@ -5,18 +5,77 @@ import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FormatRupiah } from "@/utils/FormatRupiah";
 import BaseInput from "./form/BaseInput.vue";
 import BaseLabel from "./form/BaseLabel.vue";
+import axios from "axios";
+import Loading from "./Loading.vue";
+import { useField, useForm } from "vee-validate";
+import * as yup from "yup";
 
 const props = defineProps({
   orders: Array,
 });
-const dataOrders = ref({
-  name_customer: "",
-  no_meja: "",
+
+const resetOrders = defineEmits(["resetOrders"]);
+
+const loading = ref(false);
+const items = ref({
+  customer_name: "",
+  table_no: "",
   orders: props.orders,
 });
 
-const paymentOrders = () => {
-  return console.log(dataOrders.value);
+// Skema Yup
+const schema = yup.object({
+  customer_name: yup.string().required("Nama pelanggan wajib diisi"),
+  table_no: yup.string().required("Nomor meja wajib diisi"),
+});
+
+// Inisialisasi form dan field
+const { validate, errors } = useForm({ validationSchema: schema });
+const { value: customer_name } = useField("customer_name");
+const { value: table_no } = useField("table_no");
+
+const paymentOrders = async () => {
+  const { valid, errors: validationErrors } = await validate();
+
+  if (!valid) {
+    return;
+  }
+
+  loading.value = true;
+  const itemId = items.value.orders.map((item) => {
+    return {
+      id: item.id,
+      qty: item.quantity,
+    };
+  });
+  console.log(itemId);
+
+  try {
+    const response = await axios.post(
+      "http://localhost:8000/api/order",
+      {
+        customer_name: items.value.customer_name,
+        table_no: items.value.table_no,
+        items: itemId,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+
+    if (response.status === 200) {
+      items.value.customer_name = "";
+      items.value.table_no = "";
+      items.value.orders = [];
+      resetOrders("resetOrders");
+    }
+  } catch (error) {
+    console.log(error);
+  } finally {
+    loading.value = false;
+  }
 };
 
 const total = computed(() => {
@@ -58,11 +117,17 @@ const deleteProduct = (id) => {
   <div class="w-full flex flex-col gap-2">
     <div>
       <base-label forHtml="customer_name" label="Customer" />
-      <base-input id="customer_name" type="text" v-model="dataOrders.name_customer"/>
+      <base-input
+        id="customer_name"
+        type="text"
+        v-model="items.customer_name"
+      />
+      <p class="text-red-400 text-[10px]">{{ errors.customer_name }}</p>
     </div>
     <div>
       <base-label forHtml="no_meja" label="No Meja" />
-      <base-input id="no_meja" type="text" v-model="dataOrders.no_meja" />
+      <base-input id="no_meja" type="text" v-model="items.table_no" />
+      <p class="text-red-400 text-[10px]">{{ errors.table_no }}</p>
     </div>
   </div>
 
@@ -115,10 +180,11 @@ const deleteProduct = (id) => {
 
     <div class="w-full mt-3">
       <button
-        class="py-2 px-4 bg-blue-500 text-white rounded-lg w-full text-base"
+        class="py-2 px-4 bg-blue-500 text-white rounded-lg w-full text-base text-center flex items-center justify-center gap-2"
         @click="paymentOrders"
       >
-        Submit
+        <Loading v-if="loading" />
+        <span v-else>Submit</span>
       </button>
     </div>
   </div>
