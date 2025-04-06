@@ -6,6 +6,9 @@ const props = defineProps(["loading", "items", "search"]);
 
 const emit = defineEmits(["order"]);
 
+
+const urlImage = "http://127.0.0.1:8000/storage/";
+
 const filteredItems = computed(() => {
   return props.items.filter((item) =>
     item.name.toLowerCase().includes(props.search.toLowerCase())
@@ -19,9 +22,9 @@ const filteredItems = computed(() => {
     class="bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700"
   >
     <a href="#">
-      <img class="rounded-t-lg" src="" alt="" />
+      <img class="rounded-t-lg object-cover h-[200px] w-full" :src="urlImage + item.image" alt="" />
     </a>
-    <div class="p-5 flex flex-col justify-between h-full w-full">
+    <div class="p-5 flex flex-col justify-between  w-full">
       <div>
         <a href="#">
           <h5

@@ -9,6 +9,7 @@ import axios from "axios";
 import Loading from "./Loading.vue";
 import { useField, useForm } from "vee-validate";
 import * as yup from "yup";
+import Swal from "sweetalert2";
 
 const props = defineProps({
   orders: Array,
@@ -18,8 +19,6 @@ const resetOrders = defineEmits(["resetOrders"]);
 
 const loading = ref(false);
 const items = ref({
-  customer_name: "",
-  table_no: "",
   orders: props.orders,
 });
 
@@ -37,6 +36,8 @@ const { value: table_no } = useField("table_no");
 const paymentOrders = async () => {
   const { valid, errors: validationErrors } = await validate();
 
+  // return console.log(validationErrors);
+
   if (!valid) {
     return;
   }
@@ -48,14 +49,14 @@ const paymentOrders = async () => {
       qty: item.quantity,
     };
   });
-  console.log(itemId);
+  // console.log(itemId);
 
   try {
     const response = await axios.post(
       "http://localhost:8000/api/order",
       {
-        customer_name: items.value.customer_name,
-        table_no: items.value.table_no,
+        customer_name: customer_name.value,
+        table_no: table_no.value,
         items: itemId,
       },
       {
@@ -66,13 +67,20 @@ const paymentOrders = async () => {
     );
 
     if (response.status === 200) {
-      items.value.customer_name = "";
-      items.value.table_no = "";
       items.value.orders = [];
       resetOrders("resetOrders");
+
+      Swal.fire({
+        icon: "success",
+        title: "Berhasil",
+        text: "Pesanan berhasil dibuat",
+        showConfirmButton: true,
+      });
+
+      return;
     }
   } catch (error) {
-    console.log(error);
+    return console.log(error);
   } finally {
     loading.value = false;
   }
@@ -117,16 +125,12 @@ const deleteProduct = (id) => {
   <div class="w-full flex flex-col gap-2">
     <div>
       <base-label forHtml="customer_name" label="Customer" />
-      <base-input
-        id="customer_name"
-        type="text"
-        v-model="items.customer_name"
-      />
+      <base-input id="customer_name" type="text" v-model="customer_name" />
       <p class="text-red-400 text-[10px]">{{ errors.customer_name }}</p>
     </div>
     <div>
       <base-label forHtml="no_meja" label="No Meja" />
-      <base-input id="no_meja" type="text" v-model="items.table_no" />
+      <base-input id="no_meja" type="text" v-model="table_no" />
       <p class="text-red-400 text-[10px]">{{ errors.table_no }}</p>
     </div>
   </div>

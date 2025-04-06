@@ -10,6 +10,7 @@ import router from "@/router";
 import axios from "axios";
 import { useField, useForm } from "vee-validate";
 import { ProdukValidation } from "@/validation/ProdukValidation";
+import Swal from "sweetalert2";
 
 const users = ref({
   name: "",
@@ -29,7 +30,6 @@ const categories = [
 ];
 const { handleSubmit } = useForm({
   validationSchema: ProdukValidation,
-
 });
 
 // console.log(handleSubmit.arguments);
@@ -39,7 +39,8 @@ const { value: typeCategory, errorMessage: categoryError } =
 const { value: price, errorMessage: priceError } = useField("price");
 const { value: deskription, errorMessage: descriptionError } =
   useField("deskription");
-const { value: gambarProduct, errorMessage: imageError } = useField("gambarProduct");
+const { value: gambarProduct, errorMessage: imageError } =
+  useField("gambarProduct");
 
 const produkId = ref("");
 
@@ -101,7 +102,7 @@ const produks = async () => {
 };
 
 const handleUpdateProduct = async () => {
-  console.log("okeokeok")
+  console.log("okeokeok");
 
   try {
     loadingUpdate.value = true;
@@ -138,7 +139,12 @@ const handleUpdateProduct = async () => {
       }
     );
 
-    console.log(response);
+    Swal.fire({
+      icon: "success",
+      title: "Berhasil",
+      text: "Produk berhasil diupdate",
+      showConfirmButton: true,
+    });
   } catch (error) {
     console.error("Error getting product:", error);
     alert("Terjadi kesalahan saat mengambil data produk.");

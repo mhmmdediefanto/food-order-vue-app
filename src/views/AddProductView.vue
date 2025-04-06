@@ -9,6 +9,8 @@ import axios from "axios";
 import Loading from "@/components/Loading.vue";
 import { ProdukValidation } from "@/validation/ProdukValidation";
 import { useField, useForm } from "vee-validate";
+import Swal from "sweetalert2";
+
 
 // Data User
 const users = ref({
@@ -81,7 +83,12 @@ const handleAddProduct = handleSubmit(async (values) => {
     );
 
     if (response.status >= 200 && response.status < 300) {
-      alert("Product berhasil ditambahkan");
+      Swal.fire({
+        icon: "success",
+        title: "Berhasil",
+        text: "Produk berhasil ditambahkan",
+        showConfirmButton: true,
+      });
       resetForm(); // Reset form setelah submit sukses
       router.push({ name: "product" });
     }
