@@ -184,7 +184,7 @@ const deleteProduct = (id) => {
 
     <div class="w-full mt-3">
       <button
-        class="py-2 px-4 bg-blue-500 text-white rounded-lg w-full text-base text-center flex items-center justify-center gap-2"
+        class="py-2 px-4 bg-blue-500 hover:bg-blue-700 active:bg-blue-400 transition ease-in-out duration-300 text-white rounded-lg w-full text-base text-center flex items-center justify-center gap-2 hover:cursor-pointer"
         @click="paymentOrders"
       >
         <Loading v-if="loading" />
