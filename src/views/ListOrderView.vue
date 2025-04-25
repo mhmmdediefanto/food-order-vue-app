@@ -7,10 +7,15 @@ import { computed, onMounted, ref } from "vue";
 import BaseModal from "@/components/BaseModal.vue";
 import { FormatRupiah } from "@/utils/FormatRupiah";
 import Loading from "@/components/Loading.vue";
+import Swal from "sweetalert2";
 
 const loading = ref({
   page: false,
   modal: false,
+});
+
+const form = ref({
+  total_amount: "",
 });
 const isOpenModal = ref(false);
 const selectedOrder = ref(null);
@@ -25,11 +30,14 @@ const orderLists = ref([]);
 onMounted(() => {
   const token = localStorage.getItem("token");
   users.value.role_id = localStorage.getItem("role_id");
-  if (!token) {
+  if (
+    users.value.role_id != "3" &&
+    users.value.role_id != "2" &&
+    users.value.role_id != "4"
+  ) {
     router.push({ name: "login" });
   }
-
-  if (users.value.role_id != "3") {
+  if (!token) {
     router.push({ name: "login" });
   }
 
@@ -97,6 +105,90 @@ const fetchOrderDetail = async (id) => {
 const closeModal = () => {
   isOpenModal.value = false;
   selectedOrder.value = null;
+};
+
+const setAsDone = async (id) => {
+  const url = `http://localhost:8000/api/order/${id}/set-as-done`;
+  try {
+    const response = await axios.post(
+      url,
+      {},
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+
+    if (response.status == 200) {
+      console.log("order berhasil di ubah ke done");
+      fetchDataOrder();
+      closeModal();
+      Swal.fire({
+        icon: "success",
+        title: "Berhasil",
+        text: "Pesanan berhasil di ubah ke done",
+        showConfirmButton: true,
+      });
+
+      return;
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const setAsPaid = async (id) => {
+  let totalAmount = parseInt(form.value.total_amount);
+
+  if (form.value.total_amount == "") {
+    alert("Total amount harus diisi");
+    return;
+  }
+
+  if (isNaN(form.value.total_amount)) {
+    alert("Total amount harus berupa angka");
+    return;
+  }
+
+  if (totalAmount < selectedOrder.value.total_amount) {
+    alert("Total amount tidak boleh kurang dari total amount sebelumnya");
+    return;
+  }
+  const url = `http://localhost:8000/api/order/${id}/set-as-paid`;
+
+  try {
+    const response = await axios.post(
+      url,
+      {
+        total_amount: form.value.total_amount,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+
+    if (response.status == 200) {
+      console.log("order berhasil di ubah ke paid");
+      fetchDataOrder();
+      closeModal();
+      form.value.total_amount = "";
+      Swal.fire({
+        icon: "success",
+        title: "Berhasil",
+        text: "Pesanan berhasil di ubah ke paid",
+        showConfirmButton: true,
+      });
+
+      return;
+    }
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 const isLogined = computed(() => {
@@ -169,6 +261,34 @@ const isLogined = computed(() => {
           </div>
           <p>Total Amount : {{ FormatRupiah(selectedOrder?.total_amount) }}</p>
         </div>
+
+        <div class="mb-3"  v-if="selectedOrder?.status == 'done'">
+          <label for="" class="text-sm">Total Amount</label>
+          <input
+            type="number"
+            class="w-full px-2 py-1 border border-gray-400"
+            name="total_amount"
+            v-model="form.total_amount"
+          />
+        </div>
+
+        <button
+          class="px-4 py-2 bg-cyan-600 rounded text-white text-sm"
+          v-if="users.role_id == '2' && selectedOrder?.status == 'ordered'"
+          @click="setAsDone(selectedOrder?.id)"
+        >
+          Set As Done
+        </button>
+        <button
+          class="px-4 py-2 bg-cyan-600 rounded text-white text-sm"
+          v-if="
+            users.role_id == '3' ||
+            (users.role_id == '4' && selectedOrder?.status == 'done')
+          "
+          @click="setAsPaid(selectedOrder?.id)"
+        >
+          Set As paid
+        </button>
       </div>
     </BaseModal>
     <Navbar
@@ -185,6 +305,7 @@ const isLogined = computed(() => {
     </div>
     <div class="my-3">
       <router-link
+        v-if="users.role_id == '1' || users.role_id == '3'"
         to="/order"
         class="py-2 px-2 bg-cyan-600 rounded-lg text-white text-sm capitalize"
         >Tambah order</router-link
