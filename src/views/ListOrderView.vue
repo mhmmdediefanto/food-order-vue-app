@@ -262,7 +262,14 @@ const isLogined = computed(() => {
           <p>Total Amount : {{ FormatRupiah(selectedOrder?.total_amount) }}</p>
         </div>
 
-        <div class="mb-3"  v-if="selectedOrder?.status == 'done'">
+        <div
+          class="mb-3"
+          v-if="
+            selectedOrder?.status == 'done'
+             
+            && users.role_id == '4'
+          "
+        >
           <label for="" class="text-sm">Total Amount</label>
           <input
             type="number"
@@ -282,7 +289,6 @@ const isLogined = computed(() => {
         <button
           class="px-4 py-2 bg-cyan-600 rounded text-white text-sm"
           v-if="
-            users.role_id == '3' ||
             (users.role_id == '4' && selectedOrder?.status == 'done')
           "
           @click="setAsPaid(selectedOrder?.id)"

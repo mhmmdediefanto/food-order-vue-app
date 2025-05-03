@@ -193,6 +193,15 @@ watchEffect(() => {
                   >List Order</RouterLink
                 >
               </li>
+              <li>
+                <RouterLink
+                  v-if=" role_id == '3'"
+                  to="/report-order"
+                  class="block py-2 px-3 text-white bg-blue-700 rounded-sm md:bg-transparent md:text-blue-700 md:p-0 md:dark:text-blue-500"
+                  aria-current="page"
+                  >Report Order</RouterLink
+                >
+              </li>
             </ul>
           </div>
         </div>

@@ -43,7 +43,12 @@ const router = createRouter({
       path: "/list-order",
       name: "list-order",
       component: () => import("../views/ListOrderView.vue"),
-    }
+    },
+    {
+      path: "/report-order",
+      name: "report-order",
+      component: () => import("@/views/ReportOrderView.vue"),
+    },
   ],
 });
 
